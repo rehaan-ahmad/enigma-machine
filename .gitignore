@@ -1,0 +1,8 @@
+*.o
+enigma
+build/
+*.exe
+.DS_Store
+.vscode/
+presets/*.enigma
+
