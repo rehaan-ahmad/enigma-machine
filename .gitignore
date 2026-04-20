@@ -4,5 +4,6 @@ build/
 *.exe
 .DS_Store
 .vscode/
+TODO.md
 presets/*.enigma
 
