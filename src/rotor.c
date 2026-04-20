@@ -30,14 +30,14 @@ static char positionToLetter(int position) {
 // Forward pass through the rotor (right to left)
 int rotorForward(const Rotor* rotor, int signal) {
     // Apply ring setting
-    int adjustedSignal = (signal + rotor->position - rotor->ringSetting + 1 + ALPHABET_SIZE) % ALPHABET_SIZE;
+    int adjustedSignal = (signal + rotor->currentPosition - rotor->ringSetting + 1 + ALPHABET_SIZE) % ALPHABET_SIZE;
 
     // Get the output from the wiring
     char outputLetter = rotor->wiring[adjustedSignal];
     int outputSignal = letterToPosition(outputLetter);
 
     // Reverse the ring setting
-    int finalSignal = (outputSignal - rotor->position + rotor->ringSetting - 1 + ALPHABET_SIZE) % ALPHABET_SIZE;
+    int finalSignal = (outputSignal - rotor->currentPosition + rotor->ringSetting - 1 + ALPHABET_SIZE) % ALPHABET_SIZE;
 
     return finalSignal;
 }
@@ -45,7 +45,7 @@ int rotorForward(const Rotor* rotor, int signal) {
 // Backward pass through the rotor (left to right)
 int rotorBackward(const Rotor* rotor, int signal) {
     // Apply ring setting
-    int adjustedSignal = (signal + rotor->position - rotor->ringSetting + 1 + ALPHABET_SIZE) % ALPHABET_SIZE;
+    int adjustedSignal = (signal + rotor->currentPosition - rotor->ringSetting + 1 + ALPHABET_SIZE) % ALPHABET_SIZE;
 
     // Find the input position in the wiring that gives the adjusted signal
     char targetLetter = positionToLetter(adjustedSignal);
@@ -59,19 +59,19 @@ int rotorBackward(const Rotor* rotor, int signal) {
     }
 
     // Reverse the ring setting
-    int finalSignal = (inputPosition - rotor->position + rotor->ringSetting - 1 + ALPHABET_SIZE) % ALPHABET_SIZE;
+    int finalSignal = (inputPosition - rotor->currentPosition + rotor->ringSetting - 1 + ALPHABET_SIZE) % ALPHABET_SIZE;
 
     return finalSignal;
 }
 
 // Step the rotor forward by one position
 void rotorStep(Rotor* rotor) {
-    rotor->position = (rotor->position + 1) % ALPHABET_SIZE;
+ rotor->currentPosition = (rotor->currentPosition + 1) % ALPHABET_SIZE;
 }
 
 // Set the rotor position (0-25)
 void rotorSetPosition(Rotor* rotor, int position) {
-    rotor->position = ((position % ALPHABET_SIZE) + ALPHABET_SIZE) % ALPHABET_SIZE;
+rotor->currentPosition = ((position % ALPHABET_SIZE) + ALPHABET_SIZE) % ALPHABET_SIZE;
 }
 
 // Set the ring setting (1-26)
@@ -81,16 +81,16 @@ void rotorSetRingSetting(Rotor* rotor, int ringSetting) {
 
 // Get the current rotor position as a letter (A-Z)
 char rotorGetPositionLetter(const Rotor* rotor) {
-    return positionToLetter(rotor->position);
+    return positionToLetter(rotor->currentPosition);
 }
 
 // Check if the rotor is at its notch position
 bool rotorIsAtNotch(const Rotor* rotor) {
-    return rotor->position == letterToPosition(rotor->notch);
+    return rotor->currentPosition == letterToPosition(rotor->notch);
 }
 
 // Reset rotor to initial state
 void rotorReset(Rotor* rotor) {
-    rotor->position = 0;
+    rotor->currentPosition = 0;
     rotor->ringSetting = 1;
 }

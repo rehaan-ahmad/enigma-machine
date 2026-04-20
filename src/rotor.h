@@ -6,11 +6,11 @@
 #define ALPHABET_SIZE 26
 
 typedef struct {
-    char wiring[ALPHABET_SIZE];  // Rotor wiring configuration
-    char notch;                   // Position where the next rotor steps
-    int ringSetting;              // Ring setting (1-26)
-    int position;                 // Current rotor position (0-25)
-    char name;                    // Rotor identifier (I-VIII)
+    char wiring[ALPHABET_SIZE];  
+    char notch;                  
+    int ringSetting;             
+    int currentPosition;         
+    char name;                   
 } Rotor;
 
 // Create a rotor with the specified wiring and notch
