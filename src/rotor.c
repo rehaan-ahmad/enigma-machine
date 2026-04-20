@@ -8,7 +8,7 @@ Rotor rotorCreate(const char* wiring, char notch, char name) {
     strncpy(rotor.wiring, wiring, ALPHABET_SIZE);
     rotor.notch = notch;
     rotor.ringSetting = 1;
-    rotor.position = 0;
+    rotor.currentPosition = 0;
     rotor.name = name;
     return rotor;
 }

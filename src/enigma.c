@@ -77,7 +77,7 @@ void setReflector(EnigmaMachine* machine, const char* reflectorName) {
 }
 
 bool addPlugPair(EnigmaMachine* machine, char from, char to) {
-    return addPlugPair(&machine->plugboard, from, to); // from plugboard.c
+    return addPlugPair(&machine->plugboard, from, to);
 }
 
 char encryptChar(EnigmaMachine* machine, char input) {

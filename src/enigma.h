@@ -14,8 +14,7 @@ typedef struct {
     Rotor rotors[NUM_ROTORS];
     Reflector reflector;
     Plugboard plugboard;
-    char rotorOrder[NUM_ROTORS]; // e.g., 'I', 'I
-I', 'III'
+    char rotorOrder[NUM_ROTORS]; // e.g., 'I', 'II', 'III'
     int ringSettings[NUM_ROTORS];
     int startPositions[NUM_ROTORS];
 } EnigmaMachine;
