@@ -7,17 +7,17 @@
 
 // Hardcoded rotor presets from historical data
 typedef struct {
-    char name;
+    const char* name;
     char wiring[ALPHABET_SIZE];
     char notch;
 } RotorPreset;
 
 static const RotorPreset rotorPresets[] = {
-    {'I', "EKMFLGDQVZNTOWYHXUSPAIBRCJ", 'Q'},
-    {'II', "AJDKSIRUXBLHWTMCQGZNPYFVOE", 'E'},
-    {'III', "BDFHJLCPRTXVZNYEIWGAKMUSQO", 'V'},
-    {'IV', "ESOVPZJAYQUIRHXLNFTGKDCMWB", 'J'},
-    {'V', "VZBRGITYUPSDNHLXAWMJQOFECK", 'Z'},
+    {"I", "EKMFLGDQVZNTOWYHXUSPAIBRCJ", 'Q'},
+    {"II", "AJDKSIRUXBLHWTMCQGZNPYFVOE", 'E'},
+    {"III", "BDFHJLCPRTXVZNYEIWGAKMUSQO", 'V'},
+    {"IV", "ESOVPZJAYQUIRHXLNFTGKDCMWB", 'J'},
+    {"V", "VZBRGITYUPSDNHLXAWMJQOFECK", 'Z'},
     // Add VI-VIII later for Kriegsmarine
 };
 
@@ -44,9 +44,9 @@ EnigmaMachine createEnigmaMachine(void) {
 void setRotorOrder(EnigmaMachine* machine, const char* rotorNames[NUM_ROTORS]) {
     for (int i = 0; i < NUM_ROTORS; i++) {
         for (int j = 0; j < numRotorPresets; j++) {
-            if (rotorPresets[j].name == rotorNames[i][0]) {
-                machine->rotors[i] = rotorCreate(rotorPresets[j].wiring, rotorPresets[j].notch, rotorPresets[j].name);
-                machine->rotorOrder[i] = rotorPresets[j].name;
+            if (strcmp(rotorPresets[j].name, rotorNames[i]) == 0) {
+                machine->rotors[i] = rotorCreate(rotorPresets[j].wiring, rotorPresets[j].notch, rotorPresets[j].name[0]);
+                machine->rotorOrder[i] = rotorPresets[j].name[0];
                 rotorSetRingSetting(&machine->rotors[i], machine->ringSettings[i]);
                 rotorSetPosition(&machine->rotors[i], machine->startPositions[i]);
                 break;
@@ -76,8 +76,20 @@ void setReflector(EnigmaMachine* machine, const char* reflectorName) {
     // Add more
 }
 
-bool addPlugPair(EnigmaMachine* machine, char from, char to) {
-    return addPlugPair(&machine->plugboard, from, to);
+bool addPlugPairToMachine(EnigmaMachine* machine, char from, char to) {
+    Plugboard* pb = &machine->plugboard;
+    int fromPos = (from >= 'A' && from <= 'Z') ? from - 'A' : -1;
+    int toPos = (to >= 'A' && to <= 'Z') ? to - 'A' : -1;
+
+    if (fromPos < 0 || toPos < 0 || fromPos == toPos || 
+        pb->map[fromPos] != fromPos || pb->map[toPos] != toPos || 
+        pb->pairsCount >= MAX_PLUG_PAIRS) {
+        return false;
+    }
+    pb->map[fromPos] = toPos;
+    pb->map[toPos] = fromPos;
+    pb->pairsCount++;
+    return true;
 }
 
 char encryptChar(EnigmaMachine* machine, char input) {

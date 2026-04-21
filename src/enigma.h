@@ -35,7 +35,7 @@ void setStartPositions(EnigmaMachine* machine, const int positions[NUM_ROTORS]);
 void setReflector(EnigmaMachine* machine, const char* reflectorName);
 
 // Add plugboard pair (up to 10)
-bool addPlugPair(EnigmaMachine* machine, char from, char to);
+bool addPlugPairToMachine(EnigmaMachine* machine, char from, char to);
 
 // Encrypt single character ('A'-'Z')
 char encryptChar(EnigmaMachine* machine, char input);
