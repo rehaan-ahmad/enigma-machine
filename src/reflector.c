@@ -9,15 +9,12 @@ static int letterToPosition(char letter) {
     return -1;
 }
 
-static char positionToLetter(int pos) {
-    pos = (pos % ALPHABET_SIZE + ALPHABET_SIZE) % ALPHABET_SIZE;
-    return 'A' + pos;
-}
+
 
 // Create reflector
 Reflector createReflector(const char* wiring, const char* name) {
     Reflector rf;
-    strncpy(rf.wiring, wiring, ALPHABET_SIZE);
+    strcpy(rf.wiring, wiring);
     strncpy(rf.name, name, 8);
     rf.name[7] = '\0'; // safety
     return rf;

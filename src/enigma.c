@@ -8,7 +8,7 @@
 // Hardcoded rotor presets from historical data
 typedef struct {
     const char* name;
-    char wiring[ALPHABET_SIZE];
+    char wiring[ALPHABET_SIZE + 1];
     char notch;
 } RotorPreset;
 
@@ -23,10 +23,7 @@ static const RotorPreset rotorPresets[] = {
 
 static const int numRotorPresets = sizeof(rotorPresets) / sizeof(RotorPreset);
 
-static const char* reflectorWirings[] = {
-    "YRUHQSLDPXNGOKMIEBFZCWVJAT", // UKW-B Thin? TODO check exact
-    // Add UKW-A, UKW-C
-};
+
 
 EnigmaMachine createEnigmaMachine(void) {
     EnigmaMachine machine;
@@ -97,6 +94,9 @@ char encryptChar(EnigmaMachine* machine, char input) {
 
     int signal = input - 'A';
 
+    // 0. Step rotors (historical: BEFORE encryption)
+    stepRotors(machine);
+
     // 1. Plugboard in
     signal = plugboardSwap(&machine->plugboard, signal);
 
@@ -116,23 +116,26 @@ char encryptChar(EnigmaMachine* machine, char input) {
     // 5. Plugboard out
     signal = plugboardSwap(&machine->plugboard, signal);
 
-    // 6. Step rotors (historical: after encryption)
-    stepRotors(machine);
-
+    // 6. Return encrypted char
     return 'A' + signal;
 }
 
 void stepRotors(EnigmaMachine* machine) {
+    // Double stepping check
+    // If middle rotor is at notch, it steps and left rotor steps
+    // If right rotor is at notch, middle rotor steps
+    bool middleAtNotch = rotorIsAtNotch(&machine->rotors[1]);
+    bool rightAtNotch = rotorIsAtNotch(&machine->rotors[2]);
+
+    if (middleAtNotch) {
+        rotorStep(&machine->rotors[0]);
+        rotorStep(&machine->rotors[1]);
+    } else if (rightAtNotch) {
+        rotorStep(&machine->rotors[1]);
+    }
+
     // Right rotor always steps
     rotorStep(&machine->rotors[2]);
-
-    // Double stepping check
-    if (rotorIsAtNotch(&machine->rotors[2]) || rotorIsAtNotch(&machine->rotors[1])) {
-        rotorStep(&machine->rotors[1]);
-        if (rotorIsAtNotch(&machine->rotors[1])) {
-            rotorStep(&machine->rotors[0]);
-        }
-    }
 }
 
 void resetMachine(EnigmaMachine* machine) {

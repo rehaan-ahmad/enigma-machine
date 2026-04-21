@@ -1,6 +1,8 @@
 #ifndef PLUGBOARD_H
 #define PLUGBOARD_H
 
+#include <stdbool.h>
+
 #define ALPHABET_SIZE 26
 #define MAX_PLUG_PAIRS 10
 

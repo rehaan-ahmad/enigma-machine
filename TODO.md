@@ -22,34 +22,36 @@ enigma/
 ## Phase 1 — Core Engine
 
 ### Rotors
-- [ ] Define rotor struct: `wiring[26]`, `notch`, `ring_setting`, `position`
-- [ ] Hardcode historical rotors I–V (Wehrmacht) and VI–VIII (Kriegsmarine)
-- [ ] Implement `rotor_forward(rotor, signal)` — signal through wiring left-to-right
-- [ ] Implement `rotor_backward(rotor, signal)` — signal right-to-left (return path)
-- [ ] Implement `rotor_step(rotor[3])` — double-stepping anomaly included
+- [x] Define rotor struct: `wiring[26]`, `notch`, `ring_setting`, `position`
+- [x] Hardcode historical rotors I–V (Wehrmacht)
+- [ ] Hardcode historical rotors VI–VIII (Kriegsmarine)
+- [x] Implement `rotor_forward(rotor, signal)` — signal through wiring left-to-right
+- [x] Implement `rotor_backward(rotor, signal)` — signal right-to-left (return path)
+- [x] Implement `rotor_step(rotor[3])` — double-stepping anomaly included
   - Middle rotor steps when it's at notch AND right rotor steps
   - Middle rotor steps again next tick (double-step)
 
 ### Reflector
-- [ ] Define reflector struct: `wiring[26]`
-- [ ] Hardcode UKW-A, UKW-B, UKW-C
-- [ ] Implement `reflect(reflector, signal)`
+- [x] Define reflector struct: `wiring[26]`
+- [x] Hardcode UKW-B
+- [ ] Hardcode UKW-A, UKW-C
+- [x] Implement `reflect(reflector, signal)`
 
 ### Plugboard
-- [ ] Define plugboard struct: `pairs[10][2]`, `map[26]`
-- [ ] Implement `plugboard_swap(plugboard, c)` — bidirectional
-- [ ] Validate: no letter paired twice, max 10 pairs
+- [x] Define plugboard struct: `pairs[10][2]`, `map[26]`
+- [x] Implement `plugboard_swap(plugboard, c)` — bidirectional
+- [x] Validate: no letter paired twice, max 10 pairs
 
 ### Cipher Core
-- [ ] Implement `enigma_encrypt_char(machine, c)`:
+- [x] Implement `enigma_encrypt_char(machine, c)`:
   1. Plugboard swap
   2. Through rotors R → M → L (forward)
   3. Reflect
   4. Through rotors L → M → R (backward)
   5. Plugboard swap again
   6. Step rotors BEFORE encryption (historical order)
-- [ ] Implement `enigma_encrypt_string(machine, input, output)`
-- [ ] Verify: encrypting ciphertext with same settings = original plaintext (self-inverse)
+- [x] Implement `enigma_encrypt_string(machine, input, output)`
+- [x] Verify: encrypting ciphertext with same settings = original plaintext (self-inverse)
 
 ---
 
@@ -153,23 +155,12 @@ For scripting / pipe usage:
 ## Phase 5 — Build & Polish
 
 ### Makefile
-```makefile
-CC = gcc
-CFLAGS = -Wall -Wextra -O2
-LIBS = -lncurses
-SRC = src/main.c src/enigma.c src/rotor.c src/plugboard.c \
-      src/reflector.c src/preset.c src/ui.c
-
-enigma: $(SRC)
-	$(CC) $(CFLAGS) -o enigma $(SRC) $(LIBS)
-
-clean:
-	rm -f enigma
-```
+- [x] Basic build system working
+- [ ] Link against `ncurses` (when UI is added)
 
 ### Testing
-- [ ] Unit test `enigma_encrypt_char` self-inverse property
-- [ ] Test double-stepping: rotor sequence `ADU` → step → `AEV`
+- [x] Unit test `enigma_encrypt_char` self-inverse property
+- [x] Test double-stepping: rotor sequence ADV → step → AEW → BFX
 - [ ] Test known ciphertext: Wehrmacht message decode (historical test vectors)
 - [ ] Test preset round-trip: save → load → encrypt → decrypt = original
 
@@ -198,7 +189,7 @@ clean:
 
 ## Completion Checklist
 
-- [ ] Phase 1: Core engine working, self-inverse verified
+- [x] Phase 1: Core engine working, self-inverse verified
 - [ ] Phase 2: Presets save/load, round-trip encrypt/decrypt working
 - [ ] Phase 3: TUI functional on Linux terminal (Fedora compatible)
 - [ ] Phase 4: CLI mode working

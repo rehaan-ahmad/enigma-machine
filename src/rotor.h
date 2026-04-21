@@ -6,7 +6,7 @@
 #define ALPHABET_SIZE 26
 
 typedef struct {
-    char wiring[ALPHABET_SIZE];  
+    char wiring[ALPHABET_SIZE + 1];  
     char notch;                  
     int ringSetting;             
     int currentPosition;         

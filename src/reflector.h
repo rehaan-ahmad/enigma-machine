@@ -4,7 +4,7 @@
 #define ALPHABET_SIZE 26
 
 typedef struct {
-    char wiring[ALPHABET_SIZE];
+    char wiring[ALPHABET_SIZE + 1];
     char name[8]; // e.g., "UKW-B"
 } Reflector;
 

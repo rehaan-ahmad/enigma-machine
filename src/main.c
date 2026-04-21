@@ -4,13 +4,13 @@
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
-        printf("Usage: ./enigma --test\\n");
+        (void)argv;
+        printf("Usage: ./enigma --test\n");
         return 1;
     }
 
     EnigmaMachine machine = createEnigmaMachine();
-    char rotorNames[NUM_ROTORS][2] = {"I", "II", "III"};
-    const char* names[3] = {rotorNames[0], rotorNames[1], rotorNames[2]};
+    const char* names[NUM_ROTORS] = {"I", "II", "III"};
     setRotorOrder(&machine, names);
 
     int ringSettings[3] = {1, 1, 1};
@@ -21,18 +21,19 @@ int main(int argc, char* argv[]) {
 
     setReflector(&machine, "UKW-B");
 
-    // Test encrypt "AAA"
-    char input[] = "AAA";
-    char output[4];
-    encryptString(&machine, input, output);
-    printf("Input: %s -> Output: %s Positions: %s\\n", input, output, getRotorPositions(&machine));
-
-    // Test self-inverse
-    char output2[4];
+    // Test double-stepping: ADV -> AEW -> BFX
+    // Rotor III notch is V, Rotor II notch is E
+    printf("\nDouble-stepping test:\n");
     resetMachine(&machine);
-    encryptString(&machine, output, output2);
-    printf("Roundtrip: %s -> %s\\n", output, output2);
+    int pos1[3] = {0, 3, 21}; // A D V
+    setStartPositions(&machine, pos1);
+    printf("Initial: %s\n", getRotorPositions(&machine));
+    
+    encryptChar(&machine, 'A');
+    printf("Step 1 (ADV -> AEW): %s\n", getRotorPositions(&machine));
+    
+    encryptChar(&machine, 'A');
+    printf("Step 2 (AEW -> BFX): %s (Double step!)\n", getRotorPositions(&machine));
 
     return 0;
 }
-

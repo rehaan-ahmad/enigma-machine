@@ -5,7 +5,7 @@
 // Create a rotor with the specified wiring and notch
 Rotor rotorCreate(const char* wiring, char notch, char name) {
     Rotor rotor;
-    strncpy(rotor.wiring, wiring, ALPHABET_SIZE);
+    strcpy(rotor.wiring, wiring);
     rotor.notch = notch;
     rotor.ringSetting = 1;
     rotor.currentPosition = 0;
