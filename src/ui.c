@@ -107,13 +107,13 @@ void ui_run(EnigmaMachine* machine) {
         }
         
         // Instructions
-        mvprintw(22, 5, "TYPE A-Z TO ENCRYPT | ESC TO QUIT | R TO RESET");
+        mvprintw(22, 5, "TYPE A-Z TO ENCRYPT | ESC TO QUIT | '|' TO RESET");
         
         refresh();
         
         ch = getch();
         if (ch == 27) break; // ESC
-        if (ch == 'r' || ch == 'R') {
+        if (ch == '|') {
             resetMachine(machine);
             last_out = 0;
             continue;

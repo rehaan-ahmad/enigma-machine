@@ -61,7 +61,7 @@ Simply run the executable to launch the full-screen interactive mode:
 ./enigma
 ```
 - **Type A-Z**: Encrypt characters in real-time.
-- **'R'**: Reset the machine to its start positions.
+- **'|'**: Reset the machine to its start positions.
 - **'ESC'**: Exit the application.
 
 ### 💻 Command Line Mode
