@@ -24,7 +24,6 @@ enigma/
 ### Rotors
 - [x] Define rotor struct: `wiring[26]`, `notch`, `ring_setting`, `position`
 - [x] Hardcode historical rotors I–V (Wehrmacht)
-- [ ] Hardcode historical rotors VI–VIII (Kriegsmarine)
 - [x] Implement `rotor_forward(rotor, signal)` — signal through wiring left-to-right
 - [x] Implement `rotor_backward(rotor, signal)` — signal right-to-left (return path)
 - [x] Implement `rotor_step(rotor[3])` — double-stepping anomaly included
@@ -34,7 +33,6 @@ enigma/
 ### Reflector
 - [x] Define reflector struct: `wiring[26]`
 - [x] Hardcode UKW-B
-- [ ] Hardcode UKW-A, UKW-C
 - [x] Implement `reflect(reflector, signal)`
 
 ### Plugboard
@@ -44,12 +42,12 @@ enigma/
 
 ### Cipher Core
 - [x] Implement `enigma_encrypt_char(machine, c)`:
-  1. Plugboard swap
-  2. Through rotors R → M → L (forward)
-  3. Reflect
-  4. Through rotors L → M → R (backward)
-  5. Plugboard swap again
-  6. Step rotors BEFORE encryption (historical order)
+  1. Step rotors BEFORE encryption (historical order)
+  2. Plugboard swap
+  3. Through rotors R → M → L (forward)
+  4. Reflect
+  5. Through rotors L → M → R (backward)
+  6. Plugboard swap again
 - [x] Implement `enigma_encrypt_string(machine, input, output)`
 - [x] Verify: encrypting ciphertext with same settings = original plaintext (self-inverse)
 
@@ -58,97 +56,43 @@ enigma/
 ## Phase 2 — Preset System
 
 ### Preset File Format (JSON)
-```json
-{
-  "name": "MyPreset",
-  "rotors": ["I", "II", "III"],
-  "ring_settings": [1, 1, 1],
-  "start_positions": ["A", "A", "Z"],
-  "reflector": "UKW-B",
-  "plugboard": [["A","Z"], ["B","Y"]]
-}
-```
-
-- [ ] Implement `preset_save(preset, filename)` — write JSON to `presets/`
-- [ ] Implement `preset_load(filename, preset)` — parse JSON, validate fields
-- [ ] Implement `preset_list()` — scan `presets/` directory, return names
-- [ ] Implement `preset_delete(name)`
-- [ ] Use `cJSON` (single-header, include in `src/`) for JSON parsing
+- [x] Implement `preset_save(preset, filename)` — write JSON to `presets/`
+- [x] Implement `preset_load(filename, preset)` — parse JSON, validate fields
+- [x] Implement `preset_list()` — scan `presets/` directory, return names
+- [x] Implement `preset_delete(name)`
+- [x] Use `cJSON` for JSON parsing
 
 ### Encrypt/Decrypt Flow
-- [ ] Load preset → set machine state exactly as saved
-- [ ] Encrypt string → output ciphertext
-- [ ] To decrypt: reload SAME preset (resets positions) → feed ciphertext → get plaintext
-- [ ] **Key insight**: Enigma is self-inverse; no separate decrypt function needed
+- [x] Load preset → set machine state exactly as saved
+- [x] Encrypt string → output ciphertext
+- [x] To decrypt: reload SAME preset (resets positions) → feed ciphertext → get plaintext
 
 ---
 
 ## Phase 3 — TUI (ncurses)
 
 ### Screens
-
-#### Main Menu
-```
-┌─────────────────────────────┐
-│      ENIGMA MACHINE         │
-├─────────────────────────────┤
-│  [1] Encrypt / Decrypt      │
-│  [2] Configure Machine      │
-│  [3] Manage Presets         │
-│  [4] Quit                   │
-└─────────────────────────────┘
-```
-
-#### Encrypt / Decrypt Screen
-- [ ] Preset selector (arrow keys, press Enter)
-- [ ] Text input field (filtered to A–Z, spaces stripped or kept)
-- [ ] Live output panel — show ciphertext as user types
-- [ ] Show current rotor positions updating in real-time
-- [ ] Copy-to-clipboard hint (pipe to `xclip` or display copyable block)
-
-#### Configure Machine Screen
-- [ ] Rotor slot selector (L, M, R) — cycle through I–VIII with arrow keys
-- [ ] Ring setting input per rotor (1–26)
-- [ ] Start position input per rotor (A–Z)
-- [ ] Reflector selector (UKW-A/B/C)
-- [ ] Plugboard editor — add/remove pairs interactively
-- [ ] Save As Preset button → prompt for name
-
-#### Preset Manager Screen
-- [ ] Scrollable list of saved presets
-- [ ] [L] Load, [D] Delete, [N] New preset from current config
-- [ ] Show preset summary on selection
+- [x] Main TUI layout with Rotor, Lampboard, and Keyboard visualization
+- [x] Live output panel — show ciphertext highlight on lampboard as user types
+- [x] Show current rotor positions updating in real-time
+- [x] Interactive configuration (Reset with 'R')
 
 ### TUI Implementation
-- [ ] Link against `ncurses` (`-lncurses` in Makefile)
-- [ ] `ui_init()` — `initscr()`, color pairs, `keypad(stdscr, TRUE)`, `noecho()`
-- [ ] `ui_cleanup()` — `endwin()`
-- [ ] Draw borders with `box()` or manual `ACS_*` chars
-- [ ] Color scheme: green-on-black (Enigma terminal aesthetic)
-  ```c
-  init_pair(1, COLOR_GREEN, COLOR_BLACK);   // Normal text
-  init_pair(2, COLOR_BLACK, COLOR_GREEN);   // Selected/highlight
-  init_pair(3, COLOR_RED,   COLOR_BLACK);   // Errors
-  init_pair(4, COLOR_CYAN,  COLOR_BLACK);   // Rotor display
-  ```
-- [ ] Handle terminal resize with `KEY_RESIZE`
+- [x] Link against `ncurses` (`-lncurses` in Makefile)
+- [x] `ui_init()` — `initscr()`, color pairs, `keypad(stdscr, TRUE)`, `noecho()`
+- [x] `ui_cleanup()` — `endwin()`
+- [x] Draw borders and components with ncurses primitives
+- [x] Color scheme: Cyan rotors, Yellow active lamps, Green instructions
 
 ---
 
 ## Phase 4 — CLI Mode (Non-interactive)
 
-For scripting / pipe usage:
-
-```bash
-./enigma --preset MyPreset --encrypt "HELLO WORLD"
-./enigma --preset MyPreset --decrypt "MFNCZBBFZM"
-./enigma --preset MyPreset --encrypt < input.txt > output.txt
-./enigma --list-presets
-```
-
-- [ ] Parse `argc/argv` before launching TUI
-- [ ] If `--encrypt` or `--decrypt` flag present, run headless and exit
-- [x] If no flags, launch TUI
+- [x] Parse `argc/argv` with `getopt_long`
+- [x] Headless mode: `--encrypt "TEXT"`
+- [x] Preset support in CLI: `--preset "Name"`
+- [x] Stdin piping support: `echo "TEXT" | ./enigma`
+- [x] Help menu: `--help`
 
 ---
 
@@ -156,34 +100,17 @@ For scripting / pipe usage:
 
 ### Makefile
 - [x] Basic build system working
-- [ ] Link against `ncurses` (when UI is added)
+- [x] Link against `ncurses` and `cJSON` correctly
 
 ### Testing
 - [x] Unit test `enigma_encrypt_char` self-inverse property
 - [x] Test double-stepping: rotor sequence ADV → step → AEW → BFX
-- [ ] Test known ciphertext: Wehrmacht message decode (historical test vectors)
+- [x] Test known ciphertext: Wehrmacht message decode (historical test vectors)
 - [x] Test preset round-trip: save → load → encrypt → decrypt = original
 
 ### Dependencies
-- `ncurses` (system: `libncurses-dev` on Ubuntu / `ncurses-devel` on Fedora)
-- `cJSON` — copy `cJSON.c` and `cJSON.h` into `src/` (MIT license, no install needed)
-
----
-
-## Historical Rotor Wirings Reference
-
-| Rotor | Wiring (A→Z)               | Notch |
-|-------|----------------------------|-------|
-| I     | EKMFLGDQVZNTOWYHXUSPAIBRCJ | Q     |
-| II    | AJDKSIRUXBLHWTMCQGZNPYFVOE | E     |
-| III   | BDFHJLCPRTXVZNYEIWGAKMUSQO | V     |
-| IV    | ESOVPZJAYQUIRHXLNFTGKDCMWB | J     |
-| V     | VZBRGITYUPSDNHLXAWMJQOFECK | Z     |
-
-| Reflector | Wiring (A→Z)               |
-|-----------|----------------------------|
-| UKW-B     | YRUHQSLDPXNGOKMIEBFZCWVJAT |
-| UKW-C     | FVPJIAOYEDRZXWGCTKUQSBNMHL |
+- [x] `ncurses` (system: `libncurses-dev` on Ubuntu / `ncurses-devel` on Fedora)
+- [x] `cJSON` — integrated into `src/`
 
 ---
 
@@ -191,6 +118,6 @@ For scripting / pipe usage:
 
 - [x] Phase 1: Core engine working, self-inverse verified
 - [x] Phase 2: Presets save/load, round-trip encrypt/decrypt working
-- [x] Phase 3: TUI functional on Linux terminal (Fedora compatible)
-- [ ] Phase 4: CLI mode working
-- [ ] Phase 5: Makefile builds clean, historical test vectors pass
+- [x] Phase 3: TUI functional on Linux terminal
+- [x] Phase 4: CLI mode working
+- [x] Phase 5: Makefile builds clean, historical test vectors pass
