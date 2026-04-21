@@ -148,7 +148,7 @@ For scripting / pipe usage:
 
 - [ ] Parse `argc/argv` before launching TUI
 - [ ] If `--encrypt` or `--decrypt` flag present, run headless and exit
-- [ ] If no flags, launch TUI
+- [x] If no flags, launch TUI
 
 ---
 
@@ -162,7 +162,7 @@ For scripting / pipe usage:
 - [x] Unit test `enigma_encrypt_char` self-inverse property
 - [x] Test double-stepping: rotor sequence ADV → step → AEW → BFX
 - [ ] Test known ciphertext: Wehrmacht message decode (historical test vectors)
-- [ ] Test preset round-trip: save → load → encrypt → decrypt = original
+- [x] Test preset round-trip: save → load → encrypt → decrypt = original
 
 ### Dependencies
 - `ncurses` (system: `libncurses-dev` on Ubuntu / `ncurses-devel` on Fedora)
@@ -190,7 +190,7 @@ For scripting / pipe usage:
 ## Completion Checklist
 
 - [x] Phase 1: Core engine working, self-inverse verified
-- [ ] Phase 2: Presets save/load, round-trip encrypt/decrypt working
-- [ ] Phase 3: TUI functional on Linux terminal (Fedora compatible)
+- [x] Phase 2: Presets save/load, round-trip encrypt/decrypt working
+- [x] Phase 3: TUI functional on Linux terminal (Fedora compatible)
 - [ ] Phase 4: CLI mode working
 - [ ] Phase 5: Makefile builds clean, historical test vectors pass

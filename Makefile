@@ -1,12 +1,12 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -std=c99 -O2 -g
-LIBS = 
+LIBS = -lncurses
 
-SRC = src/main.c src/enigma.c src/rotor.c src/reflector.c src/plugboard.c
+SRC = src/main.c src/enigma.c src/rotor.c src/reflector.c src/plugboard.c src/preset.c src/cJSON.c src/ui.c
 OBJ = $(SRC:.c=.o)
 
 enigma: $(OBJ)
-	$(CC) $(OBJ) -o enigma
+	$(CC) $(OBJ) -o enigma $(LIBS)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
