@@ -61,6 +61,10 @@ void gui_run(EnigmaMachine* machine) {
     char last_out = 0;
     char last_in = 0;
 
+    // Log files opened once per session
+    FILE *f_in = fopen("input.log", "a");
+    FILE *f_out = fopen("output.log", "a");
+
     while (!WindowShouldClose()) {
         int sw = GetScreenWidth();
         
@@ -83,6 +87,8 @@ void gui_run(EnigmaMachine* machine) {
         if (last_in != 0) {
             if (IsKeyPressed(last_in)) {
                 last_out = encryptChar(machine, last_in);
+                if (f_in) { fputc(last_in, f_in); fflush(f_in); }
+                if (f_out) { fputc(last_out, f_out); fflush(f_out); }
             }
         } else {
             last_out = 0;
@@ -102,7 +108,16 @@ void gui_run(EnigmaMachine* machine) {
         for (int i = 0; i < NUM_ROTORS; i++) {
             char name[16];
             snprintf(name, sizeof(name), "Rotor %s", machine->rotorNames[i]);
-            draw_rotor(rotor_base_x + i * 150, 200, machine->rotors[i].currentPosition, name);
+            int rx = rotor_base_x + i * 150;
+            int ry = 200;
+            
+            // Interaction: Clicking advances the rotor manually
+            Rectangle rec = { rx - 40, ry - 60, 80, 120 };
+            if (CheckCollisionPointRec(GetMousePosition(), rec) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+                rotorStep(&machine->rotors[i]);
+            }
+            
+            draw_rotor(rx, ry, machine->rotors[i].currentPosition, name);
         }
 
         // Lampboard
@@ -143,4 +158,7 @@ void gui_run(EnigmaMachine* machine) {
 
         EndDrawing();
     }
+
+    if (f_in) fclose(f_in);
+    if (f_out) fclose(f_out);
 }
