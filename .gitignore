@@ -7,3 +7,5 @@ build/
 TODO.md
 presets/*.enigma
 
+input.log
+output.log

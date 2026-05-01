@@ -37,6 +37,9 @@ void setReflector(EnigmaMachine* machine, const char* reflectorName);
 // Add plugboard pair (up to 10)
 bool addPlugPairToMachine(EnigmaMachine* machine, char from, char to);
 
+// Remove plugboard pair
+void removePlugPairFromMachine(EnigmaMachine* machine, char c);
+
 // Encrypt single character ('A'-'Z')
 char encryptChar(EnigmaMachine* machine, char input);
 

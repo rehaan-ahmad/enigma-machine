@@ -88,6 +88,17 @@ bool addPlugPairToMachine(EnigmaMachine* machine, char from, char to) {
     pb->pairsCount++;
     return true;
 }
+void removePlugPairFromMachine(EnigmaMachine* machine, char c) {
+    int pos = (c >= 'A' && c <= 'Z') ? c - 'A' : -1;
+    if (pos < 0) return;
+
+    int other = machine->plugboard.map[pos];
+    if (other != pos) {
+        machine->plugboard.map[pos] = pos;
+        machine->plugboard.map[other] = other;
+        machine->plugboard.pairsCount--;
+    }
+}
 
 char encryptChar(EnigmaMachine* machine, char input) {
     if (input < 'A' || input > 'Z') return input;

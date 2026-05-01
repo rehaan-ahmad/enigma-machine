@@ -3,6 +3,8 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
+#include <time.h>
+#include <stdlib.h>
 
 #define WINDOW_WIDTH 1000
 #define WINDOW_HEIGHT 700
@@ -15,9 +17,26 @@
 #define COLOR_LAMP_ON (Color){ 255, 230, 100, 255 }
 #define COLOR_KEY (Color){ 50, 50, 50, 255 }
 #define COLOR_TEXT (Color){ 200, 200, 200, 255 }
+#define COLOR_ACCENT (Color){ 200, 50, 50, 255 }
 
 static const char* KB_ROWS[] = {"QWERTZUIO", "ASDFGHJK", "PYXCVBNM"};
 static int KB_OFFSETS[] = {0, 25, 50};
+
+static void OpenLogFile(const char* filename) {
+#if defined(_WIN32)
+    char cmd[128];
+    snprintf(cmd, sizeof(cmd), "start %s", filename);
+    system(cmd);
+#elif defined(__APPLE__)
+    char cmd[128];
+    snprintf(cmd, sizeof(cmd), "open %s", filename);
+    system(cmd);
+#else
+    char cmd[128];
+    snprintf(cmd, sizeof(cmd), "xdg-open %s", filename);
+    system(cmd);
+#endif
+}
 
 void gui_init(void) {
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
@@ -60,6 +79,7 @@ static void draw_key(int x, int y, char letter, bool pressed) {
 void gui_run(EnigmaMachine* machine) {
     char last_out = 0;
     char last_in = 0;
+    char plug_start = 0; // Tracks first letter of a new plug pair
 
     // Log files opened once per session
     FILE *f_in = fopen("input.log", "a");
@@ -67,6 +87,11 @@ void gui_run(EnigmaMachine* machine) {
 
     while (!WindowShouldClose()) {
         int sw = GetScreenWidth();
+        
+        time_t now = time(NULL);
+        struct tm *t = localtime(&now);
+        char time_str[32];
+        strftime(time_str, sizeof(time_str), "[%Y-%m-%d %H:%M:%S] ", t);
         
         // Input Handling
         last_in = 0;
@@ -87,8 +112,8 @@ void gui_run(EnigmaMachine* machine) {
         if (last_in != 0) {
             if (IsKeyPressed(last_in)) {
                 last_out = encryptChar(machine, last_in);
-                if (f_in) { fputc(last_in, f_in); fflush(f_in); }
-                if (f_out) { fputc(last_out, f_out); fflush(f_out); }
+                if (f_in) { fprintf(f_in, "%s%c\n", time_str, last_in); fflush(f_in); }
+                if (f_out) { fprintf(f_out, "%s%c\n", time_str, last_out); fflush(f_out); }
             }
         } else {
             last_out = 0;
@@ -131,14 +156,30 @@ void gui_run(EnigmaMachine* machine) {
             }
         }
 
-        // Keyboard
+        // Keyboard & Plugboard Logic
         int kb_x = sw / 2 - 270;
         int kb_y = 580;
         for (int r = 0; r < 3; r++) {
             int len = strlen(KB_ROWS[r]);
             for (int i = 0; i < len; i++) {
                 char c = KB_ROWS[r][i];
-                draw_key(kb_x + KB_OFFSETS[r] + i * 60, kb_y + r * 55, c, c == last_in);
+                int kx = kb_x + KB_OFFSETS[r] + i * 60;
+                int ky = kb_y + r * 55;
+                
+                // Interaction: Clicking a key with RIGHT MOUSE starts/ends a plug pair
+                Rectangle krec = { kx - 22, ky - 22, 44, 44 };
+                if (CheckCollisionPointRec(GetMousePosition(), krec) && IsMouseButtonPressed(MOUSE_RIGHT_BUTTON)) {
+                    if (plug_start == 0) {
+                        plug_start = c;
+                    } else {
+                        if (plug_start != c) {
+                            addPlugPairToMachine(machine, plug_start, c);
+                        }
+                        plug_start = 0;
+                    }
+                }
+                
+                draw_key(kx, ky, c, (c == last_in || c == plug_start));
             }
         }
 
@@ -146,14 +187,53 @@ void gui_run(EnigmaMachine* machine) {
         int pb_w = 220;
         DrawRectangleRounded((Rectangle){ sw - pb_w - 30, 130, pb_w, 400 }, 0.1, 10, COLOR_PANEL);
         DrawText("PLUGBOARD", sw - pb_w - 10, 150, 20, WHITE);
+        DrawText("Right-click keys to pair", sw - pb_w - 10, 175, 12, GRAY);
+        
         int pb_idx = 0;
         for (int i = 0; i < ALPHABET_SIZE; i++) {
             if (machine->plugboard.map[i] > i) {
                 char pair[16];
                 snprintf(pair, sizeof(pair), "%c <-> %c", 'A' + i, 'A' + machine->plugboard.map[i]);
-                DrawText(pair, sw - pb_w, 190 + pb_idx * 25, 18, LIGHTGRAY);
+                
+                Rectangle p_rec = { sw - pb_w, 200 + pb_idx * 25, 200, 20 };
+                bool p_hover = CheckCollisionPointRec(GetMousePosition(), p_rec);
+                
+                DrawText(pair, p_rec.x, p_rec.y, 18, p_hover ? WHITE : LIGHTGRAY);
+                
+                if (p_hover && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+                    removePlugPairFromMachine(machine, 'A' + i);
+                }
+                
                 pb_idx++;
             }
+        }
+
+        // Action Buttons (Open Logs & Clear)
+        int btn_y = 480;
+        Rectangle btn_in = { sw - pb_w - 30, btn_y, pb_w, 35 };
+        Rectangle btn_out = { sw - pb_w - 30, btn_y + 45, pb_w, 35 };
+        Rectangle btn_clear = { sw - pb_w - 30, btn_y + 90, pb_w, 35 };
+
+        // Open Input Log
+        bool h_in = CheckCollisionPointRec(GetMousePosition(), btn_in);
+        DrawRectangleRounded(btn_in, 0.2, 10, h_in ? GRAY : COLOR_KEY);
+        DrawText("OPEN INPUT LOG", btn_in.x + 40, btn_in.y + 10, 14, WHITE);
+        if (h_in && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) OpenLogFile("input.log");
+
+        // Open Output Log
+        bool h_out = CheckCollisionPointRec(GetMousePosition(), btn_out);
+        DrawRectangleRounded(btn_out, 0.2, 10, h_out ? GRAY : COLOR_KEY);
+        DrawText("OPEN OUTPUT LOG", btn_out.x + 40, btn_out.y + 10, 14, WHITE);
+        if (h_out && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) OpenLogFile("output.log");
+
+        // Clear Logs
+        bool h_clear = CheckCollisionPointRec(GetMousePosition(), btn_clear);
+        DrawRectangleRounded(btn_clear, 0.2, 10, h_clear ? COLOR_ACCENT : COLOR_KEY);
+        DrawText("CLEAR ALL LOGS", btn_clear.x + 40, btn_clear.y + 10, 14, WHITE);
+        
+        if (h_clear && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+            if (f_in) freopen("input.log", "w", f_in);
+            if (f_out) freopen("output.log", "w", f_out);
         }
 
         EndDrawing();
