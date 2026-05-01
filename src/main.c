@@ -1,6 +1,8 @@
 #include "enigma.h"
 #include "ui.h"
+#ifdef HAS_GUI
 #include "gui.h"
+#endif
 #include "preset.h"
 #include <stdio.h>
 #include <string.h>
@@ -15,7 +17,9 @@ void print_usage(const char* progname) {
     printf("  -e, --encrypt <text>     Encrypt/decrypt the provided text\n");
     printf("  -p, --preset <name>      Load machine settings from a preset\n");
     printf("  -t, --test               Run internal logic tests\n");
-    printf("\nIf no options are provided, the interactive TUI will launch.\n");
+    printf("  -g, --gui                Launch graphical user interface (default)\n");
+    printf("  --tui                    Launch terminal user interface\n");
+    printf("\nIf no options are provided, the interactive GUI will launch.\n");
 }
 
 void run_tests() {
@@ -172,11 +176,33 @@ int main(int argc, char* argv[]) {
         ui_init();
         ui_run(&machine);
         ui_cleanup();
-    } else {
-        // GUI mode (Default)
+    } else if (force_gui || isatty(STDIN_FILENO)) {
+        // GUI mode (Default for TTY or explicit)
+#ifdef HAS_GUI
         gui_init();
         gui_run(&machine);
         gui_cleanup();
+#else
+        if (force_gui) {
+            fprintf(stderr, "Error: GUI support not compiled into this binary.\n");
+            return 1;
+        }
+        // Fallback to TUI if no GUI is available
+        ui_init();
+        ui_run(&machine);
+        ui_cleanup();
+#endif
+    } else {
+        // Fallback for non-TTY interactive (though rare)
+#ifdef HAS_GUI
+        gui_init();
+        gui_run(&machine);
+        gui_cleanup();
+#else
+        ui_init();
+        ui_run(&machine);
+        ui_cleanup();
+#endif
     }
 
     return 0;
