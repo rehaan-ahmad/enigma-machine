@@ -32,7 +32,7 @@ EnigmaMachine createEnigmaMachine(void) {
     }
     machine.reflector = createReflector("YRUHQSLDPXNGOKMIEBFZCWVJAT", "UKW-B");
     machine.plugboard = createPlugboard();
-    memset(machine.rotorOrder, 0, sizeof(machine.rotorOrder));
+    for (int i = 0; i < NUM_ROTORS; i++) machine.rotorNames[i] = "None";
     memset(machine.ringSettings, 1, sizeof(machine.ringSettings));
     memset(machine.startPositions, 0, sizeof(machine.startPositions));
     return machine;
@@ -43,7 +43,7 @@ void setRotorOrder(EnigmaMachine* machine, const char* rotorNames[NUM_ROTORS]) {
         for (int j = 0; j < numRotorPresets; j++) {
             if (strcmp(rotorPresets[j].name, rotorNames[i]) == 0) {
                 machine->rotors[i] = rotorCreate(rotorPresets[j].wiring, rotorPresets[j].notch, rotorPresets[j].name[0]);
-                machine->rotorOrder[i] = rotorPresets[j].name[0];
+                machine->rotorNames[i] = rotorPresets[j].name;
                 rotorSetRingSetting(&machine->rotors[i], machine->ringSettings[i]);
                 rotorSetPosition(&machine->rotors[i], machine->startPositions[i]);
                 break;

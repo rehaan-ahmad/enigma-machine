@@ -84,7 +84,7 @@ void ui_run(EnigmaMachine* machine) {
         mvprintw(4, 5, "ROTORS:");
         for (int i = 0; i < NUM_ROTORS; i++) {
             char nameStr[8];
-            snprintf(nameStr, sizeof(nameStr), "%c", machine->rotorOrder[i]);
+            snprintf(nameStr, sizeof(nameStr), "%s", machine->rotorNames[i]);
             draw_rotor(5, 5 + (NUM_ROTORS - 1 - i) * 10, machine->rotors[i].currentPosition, nameStr);
         }
         

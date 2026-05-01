@@ -24,8 +24,7 @@ bool preset_save(const EnigmaMachine* machine, const char* presetName) {
     // Rotors
     cJSON *rotors = cJSON_CreateArray();
     for (int i = 0; i < NUM_ROTORS; i++) {
-        char nameStr[2] = {machine->rotorOrder[i], '\0'};
-        cJSON_AddItemToArray(rotors, cJSON_CreateString(nameStr));
+        cJSON_AddItemToArray(rotors, cJSON_CreateString(machine->rotorNames[i]));
     }
     cJSON_AddItemToObject(root, "rotors", rotors);
 
@@ -97,9 +96,10 @@ bool preset_load(EnigmaMachine* machine, const char* presetName) {
     cJSON *rotors = cJSON_GetObjectItem(root, "rotors");
     if (cJSON_IsArray(rotors)) {
         const char *names[NUM_ROTORS];
-        char nameBufs[NUM_ROTORS][2];
+        char nameBufs[NUM_ROTORS][8];
         for (int i = 0; i < NUM_ROTORS && i < cJSON_GetArraySize(rotors); i++) {
-            strncpy(nameBufs[i], cJSON_GetArrayItem(rotors, i)->valuestring, 2);
+            strncpy(nameBufs[i], cJSON_GetArrayItem(rotors, i)->valuestring, 7);
+            nameBufs[i][7] = '\0';
             names[i] = nameBufs[i];
         }
         setRotorOrder(machine, names);

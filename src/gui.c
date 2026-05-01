@@ -20,6 +20,7 @@ static const char* KB_ROWS[] = {"QWERTZUIO", "ASDFGHJK", "PYXCVBNM"};
 static int KB_OFFSETS[] = {0, 25, 50};
 
 void gui_init(void) {
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Enigma Machine Simulator - Raylib GUI");
     SetTargetFPS(60);
 }
@@ -30,11 +31,11 @@ void gui_cleanup(void) {
 
 static void draw_rotor(int x, int y, int pos, const char* name) {
     DrawRectangleRounded((Rectangle){ x - 40, y - 60, 80, 120 }, 0.2, 10, COLOR_ROTOR);
-    DrawRectangleRoundedLines((Rectangle){ x - 40, y - 60, 80, 120 }, 0.2, 10, 2, GRAY);
+    DrawRectangleRoundedLines((Rectangle){ x - 40, y - 60, 80, 120 }, 0.2, 10, GRAY);
     
     char letter[2] = { 'A' + pos, '\0' };
     DrawText(letter, x - 15, y - 30, 60, WHITE);
-    DrawText(name, x - 15, y + 70, 20, LIGHTGRAY);
+    DrawText(name, x - MeasureText(name, 20)/2, y + 70, 20, LIGHTGRAY);
 }
 
 static void draw_lamp(int x, int y, char letter, bool on) {
@@ -52,7 +53,7 @@ static void draw_lamp(int x, int y, char letter, bool on) {
 static void draw_key(int x, int y, char letter, bool pressed) {
     Rectangle rect = { x - 22, y - 22, 44, 44 };
     DrawRectangleRounded(rect, 0.2, 10, pressed ? GRAY : COLOR_KEY);
-    DrawRectangleRoundedLines(rect, 0.2, 10, 2, pressed ? LIGHTGRAY : DARKGRAY);
+    DrawRectangleRoundedLines(rect, 0.2, 10, pressed ? LIGHTGRAY : DARKGRAY);
     DrawText((char[]){letter, '\0'}, x - 8, y - 12, 24, WHITE);
 }
 
@@ -61,6 +62,8 @@ void gui_run(EnigmaMachine* machine) {
     char last_in = 0;
 
     while (!WindowShouldClose()) {
+        int sw = GetScreenWidth();
+        
         // Input Handling
         last_in = 0;
         for (int i = 'A'; i <= 'Z'; i++) {
@@ -78,8 +81,6 @@ void gui_run(EnigmaMachine* machine) {
 
         // Logic
         if (last_in != 0) {
-            // We use IsKeyPressed for the actual encryption to prevent rapid-fire advance
-            // But we use IsKeyDown for visual feedback of the key press
             if (IsKeyPressed(last_in)) {
                 last_out = encryptChar(machine, last_in);
             }
@@ -96,14 +97,16 @@ void gui_run(EnigmaMachine* machine) {
         DrawText("PRESS A-Z TO ENCRYPT | BACKSPACE TO RESET", 30, 70, 20, GRAY);
 
         // Rotors
+        // Left (0), Middle (1), Right (2)
+        int rotor_base_x = sw / 2 - 150;
         for (int i = 0; i < NUM_ROTORS; i++) {
-            char name[8];
-            snprintf(name, sizeof(name), "Rotor %c", machine->rotorOrder[i]);
-            draw_rotor(200 + (NUM_ROTORS - 1 - i) * 150, 200, machine->rotors[i].currentPosition, name);
+            char name[16];
+            snprintf(name, sizeof(name), "Rotor %s", machine->rotorNames[i]);
+            draw_rotor(rotor_base_x + i * 150, 200, machine->rotors[i].currentPosition, name);
         }
 
         // Lampboard
-        int lb_x = 100;
+        int lb_x = sw / 2 - 270;
         int lb_y = 380;
         for (int r = 0; r < 3; r++) {
             int len = strlen(KB_ROWS[r]);
@@ -114,7 +117,7 @@ void gui_run(EnigmaMachine* machine) {
         }
 
         // Keyboard
-        int kb_x = 100;
+        int kb_x = sw / 2 - 270;
         int kb_y = 580;
         for (int r = 0; r < 3; r++) {
             int len = strlen(KB_ROWS[r]);
@@ -125,14 +128,15 @@ void gui_run(EnigmaMachine* machine) {
         }
 
         // Plugboard Panel
-        DrawRectangleRounded((Rectangle){ 750, 130, 220, 400 }, 0.1, 10, COLOR_PANEL);
-        DrawText("PLUGBOARD", 770, 150, 20, WHITE);
+        int pb_w = 220;
+        DrawRectangleRounded((Rectangle){ sw - pb_w - 30, 130, pb_w, 400 }, 0.1, 10, COLOR_PANEL);
+        DrawText("PLUGBOARD", sw - pb_w - 10, 150, 20, WHITE);
         int pb_idx = 0;
         for (int i = 0; i < ALPHABET_SIZE; i++) {
             if (machine->plugboard.map[i] > i) {
                 char pair[16];
                 snprintf(pair, sizeof(pair), "%c <-> %c", 'A' + i, 'A' + machine->plugboard.map[i]);
-                DrawText(pair, 780, 190 + pb_idx * 25, 18, LIGHTGRAY);
+                DrawText(pair, sw - pb_w, 190 + pb_idx * 25, 18, LIGHTGRAY);
                 pb_idx++;
             }
         }
