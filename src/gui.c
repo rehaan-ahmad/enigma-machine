@@ -1,4 +1,5 @@
 #include "gui.h"
+#include "cracker.h"
 #include <raylib.h>
 #include <string.h>
 #include <ctype.h>
@@ -79,7 +80,13 @@ static void draw_key(int x, int y, char letter, bool pressed) {
 void gui_run(EnigmaMachine* machine) {
     char last_out = 0;
     char last_in = 0;
-    char plug_start = 0; // Tracks first letter of a new plug pair
+    char plug_start = 0;
+    
+    // Cracking state
+    bool cracking_mode = false;
+    char crib_input[64] = "";
+    int crib_len = 0;
+    CrackerStatus crack_status = {0};
 
     // Log files opened once per session
     FILE *f_in = fopen("input.log", "a");
@@ -87,6 +94,7 @@ void gui_run(EnigmaMachine* machine) {
 
     while (!WindowShouldClose()) {
         int sw = GetScreenWidth();
+        int sh = GetScreenHeight();
         
         time_t now = time(NULL);
         struct tm *t = localtime(&now);
@@ -234,6 +242,83 @@ void gui_run(EnigmaMachine* machine) {
         if (h_clear && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
             if (f_in) freopen("input.log", "w", f_in);
             if (f_out) freopen("output.log", "w", f_out);
+        }
+
+        // Cracking Interface
+        Rectangle btn_crack_toggle = { 30, sh - 100, 200, 40 };
+        bool h_crack = CheckCollisionPointRec(GetMousePosition(), btn_crack_toggle);
+        DrawRectangleRounded(btn_crack_toggle, 0.2, 10, cracking_mode ? COLOR_ACCENT : COLOR_KEY);
+        DrawText(cracking_mode ? "EXIT CRACKER" : "OPEN CRACKER", btn_crack_toggle.x + 30, btn_crack_toggle.y + 10, 16, WHITE);
+        
+        if (h_crack && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+            cracking_mode = !cracking_mode;
+        }
+
+        if (cracking_mode) {
+            DrawRectangle(0, 0, sw, sh, (Color){ 0, 0, 0, 200 }); // Overlay
+            DrawRectangleRounded((Rectangle){ sw/2 - 250, sh/2 - 150, 500, 300 }, 0.1, 10, COLOR_PANEL);
+            DrawText("AUTO-DECRYPT (BRUTE FORCE)", sw/2 - 180, sh/2 - 130, 24, WHITE);
+            
+            DrawText("ENTER CRIB (Guessed Plaintext):", sw/2 - 230, sh/2 - 80, 18, GRAY);
+            DrawRectangle(sw/2 - 230, sh/2 - 50, 460, 40, BLACK);
+            DrawRectangleLines(sw/2 - 230, sh/2 - 50, 460, 40, GRAY);
+            DrawText(crib_input, sw/2 - 220, sh/2 - 40, 20, YELLOW);
+
+            // Handle Crib Typing
+            int key = GetCharPressed();
+            while (key > 0) {
+                if ((key >= 32) && (key <= 125) && (crib_len < 63)) {
+                    crib_input[crib_len] = (char)toupper(key);
+                    crib_input[++crib_len] = '\0';
+                }
+                key = GetCharPressed();
+            }
+            if (IsKeyPressed(KEY_BACKSPACE) && crib_len > 0) {
+                crib_input[--crib_len] = '\0';
+            }
+
+            // Start Crack Button
+            Rectangle btn_run = { sw/2 - 100, sh/2 + 20, 200, 40 };
+            bool h_run = CheckCollisionPointRec(GetMousePosition(), btn_run);
+            DrawRectangleRounded(btn_run, 0.2, 10, h_run ? GREEN : DARKGREEN);
+            DrawText("RUN CRACKER", btn_run.x + 40, btn_run.y + 10, 16, WHITE);
+
+            if (h_run && IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && crib_len > 2) {
+                // To keep it simple for this version, we read the output.log as our "captured ciphertext"
+                // In a real scenario, this would be the message you're trying to break.
+                FILE* f = fopen("output.log", "r");
+                if (f) {
+                    char captured[1024] = "";
+                    char line[256];
+                    while (fgets(line, sizeof(line), f)) {
+                        // Extract char from log "[YYYY...] C"
+                        char* last_space = strrchr(line, ' ');
+                        if (last_space && isalpha(last_space[1])) {
+                            strncat(captured, &last_space[1], 1);
+                        }
+                    }
+                    fclose(f);
+
+                    if (strlen(captured) > 0) {
+                        crack_status.ciphertext = captured;
+                        crack_status.crib = crib_input;
+                        crack_code(&crack_status); // This is blocking for now, but fast enough for M3
+
+                        if (crack_status.success) {
+                            // Apply found settings
+                            const char* found_names[3] = { crack_status.found_rotor_names[0], crack_status.found_rotor_names[1], crack_status.found_rotor_names[2] };
+                            setRotorOrder(machine, found_names);
+                            setStartPositions(machine, crack_status.found_start_pos);
+                            resetMachine(machine);
+                            cracking_mode = false;
+                        }
+                    }
+                }
+            }
+            
+            if (crack_status.progress > 0 && !crack_status.success) {
+                DrawText("No match found. Try a different crib.", sw/2 - 150, sh/2 + 80, 16, RED);
+            }
         }
 
         EndDrawing();

@@ -16,7 +16,7 @@ else
     GUI_SRC = 
 endif
 
-SRC = src/main.c src/enigma.c src/rotor.c src/reflector.c src/plugboard.c src/preset.c src/cJSON.c src/ui.c $(GUI_SRC)
+SRC = src/main.c src/enigma.c src/rotor.c src/reflector.c src/plugboard.c src/preset.c src/cJSON.c src/ui.c src/cracker.c $(GUI_SRC)
 OBJ = $(SRC:.c=.o)
 
 enigma: $(OBJ)

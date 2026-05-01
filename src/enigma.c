@@ -5,23 +5,7 @@
 #include <string.h>
 #include <stdio.h>
 
-// Hardcoded rotor presets from historical data
-typedef struct {
-    const char* name;
-    char wiring[ALPHABET_SIZE + 1];
-    char notch;
-} RotorPreset;
-
-static const RotorPreset rotorPresets[] = {
-    {"I", "EKMFLGDQVZNTOWYHXUSPAIBRCJ", 'Q'},
-    {"II", "AJDKSIRUXBLHWTMCQGZNPYFVOE", 'E'},
-    {"III", "BDFHJLCPRTXVZNYEIWGAKMUSQO", 'V'},
-    {"IV", "ESOVPZJAYQUIRHXLNFTGKDCMWB", 'J'},
-    {"V", "VZBRGITYUPSDNHLXAWMJQOFECK", 'Z'},
-    // Add VI-VIII later for Kriegsmarine
-};
-
-static const int numRotorPresets = sizeof(rotorPresets) / sizeof(RotorPreset);
+#include "rotor_presets.h"
 
 
 
