@@ -1,5 +1,6 @@
 #include "enigma.h"
 #include "ui.h"
+#include "gui.h"
 #include "preset.h"
 #include <stdio.h>
 #include <string.h>
@@ -90,12 +91,16 @@ int main(int argc, char* argv[]) {
     char* encrypt_text = NULL;
     char* preset_name = NULL;
     int run_t = 0;
+    int force_gui = 0;
+    int force_tui = 0;
 
     static struct option long_options[] = {
         {"help", no_argument, 0, 'h'},
         {"encrypt", required_argument, 0, 'e'},
         {"preset", required_argument, 0, 'p'},
         {"test", no_argument, 0, 't'},
+        {"gui", no_argument, 0, 'g'},
+        {"tui", no_argument, 0, 1000}, // No short opt for TUI
         {0, 0, 0, 0}
     };
 
@@ -112,6 +117,12 @@ int main(int argc, char* argv[]) {
                 break;
             case 't':
                 run_t = 1;
+                break;
+            case 'g':
+                force_gui = 1;
+                break;
+            case 1000:
+                force_tui = 1;
                 break;
             default:
                 print_usage(argv[0]);
@@ -156,11 +167,16 @@ int main(int argc, char* argv[]) {
             printf("%s\n", output);
             free(output);
         }
-    } else {
-        // TUI mode
+    } else if (force_tui) {
+        // Explicit TUI mode
         ui_init();
         ui_run(&machine);
         ui_cleanup();
+    } else {
+        // GUI mode (Default)
+        gui_init();
+        gui_run(&machine);
+        gui_cleanup();
     }
 
     return 0;
